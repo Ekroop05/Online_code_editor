@@ -2,7 +2,7 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import collaboration, execute, file
+from app.routes import chat, collaboration, execute, file
 from app.db.database import verify_mongodb_connection
 from app.services.file_service import remove_legacy_seed_files
 
@@ -23,6 +23,7 @@ app.add_middleware(
 # Include routes
 app.include_router(execute.router)
 app.include_router(file.router)
+app.include_router(chat.router)
 app.include_router(collaboration.router)
 
 

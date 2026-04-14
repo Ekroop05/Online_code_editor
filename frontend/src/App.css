@@ -456,6 +456,25 @@
   gap: 10px;
   padding: 16px 16px 0;
   align-items: center;
+  min-width: 0;
+}
+
+.editor-surface__tab-area {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.editor-surface__tab-area.has-fade::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 44px;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(7, 28, 20, 0), rgba(7, 28, 20, 0.96));
 }
 
 .editor-surface__tab-strip {
@@ -463,10 +482,19 @@
   gap: 10px;
   min-width: 0;
   overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+
+.editor-surface__tab-strip::-webkit-scrollbar {
+  display: none;
 }
 
 .editor-surface__tab {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
@@ -752,14 +780,37 @@
   border-radius: 22px;
   border: 1px solid rgba(95, 255, 168, 0.16);
   background: rgba(95, 255, 168, 0.04);
+  display: grid;
+  gap: 12px;
 }
 
-.chat-sidebar__input {
-  margin-top: 12px;
+.chat-sidebar__field {
   padding: 14px;
+  border: 1px solid rgba(95, 255, 168, 0.14);
   border-radius: 16px;
-  color: rgba(216, 255, 232, 0.5);
+  color: var(--text);
   background: rgba(0, 0, 0, 0.24);
+  font: inherit;
+  outline: none;
+}
+
+.chat-sidebar__field::placeholder {
+  color: rgba(216, 255, 232, 0.5);
+}
+
+.chat-sidebar__send {
+  padding: 10px 14px;
+  border: 1px solid rgba(95, 255, 168, 0.18);
+  border-radius: 999px;
+  color: var(--accent);
+  background: rgba(95, 255, 168, 0.08);
+  cursor: pointer;
+  font: inherit;
+}
+
+.chat-sidebar__send:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 @keyframes wirePulse {

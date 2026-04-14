@@ -26,21 +26,11 @@ const launchers = [
   },
 ]
 
-const chatMessages = [
-  {
-    author: 'Aditya',
-    role: 'Frontend',
-    text: 'The shell is online. Editor, extension bay, and chat rail are sharing one signal path now.',
-  },
-  {
-    author: 'Ekroop',
-    role: 'Backend',
-    text: 'Sockets can feed presence into the sidebar while the central device stays focused on code or modules.',
-  },
+const defaultChatMessages = [
   {
     author: 'System',
     role: 'Runtime',
-    text: 'Wiring stable. Click any device node to route current and open the matching surface.',
+    text: 'Enter your name to join the live channel.',
   },
 ]
 
@@ -102,7 +92,9 @@ function MainWindow({
   onCloseTab,
 }) {
   const lineNumbersRef = useRef(null)
+  const tabsScrollerRef = useRef(null)
   const lineCount = code ? code.split('\n').length : 1
+  const [showTabsFade, setShowTabsFade] = useState(false)
   const placeholderByLanguage = {
     python: 'Write Python code here...',
     javascript: 'Write JavaScript code here...',
@@ -124,30 +116,84 @@ function MainWindow({
     }
   }
 
+  function updateTabsOverflowState() {
+    const container = tabsScrollerRef.current
+    if (!container) {
+      setShowTabsFade(false)
+      return
+    }
+
+    const hasOverflow = container.scrollWidth > container.clientWidth + 1
+    const canScrollFurtherRight =
+      container.scrollLeft + container.clientWidth < container.scrollWidth - 1
+
+    setShowTabsFade(hasOverflow && canScrollFurtherRight)
+  }
+
+  function handleTabsWheel(event) {
+    const container = tabsScrollerRef.current
+    if (!container) {
+      return
+    }
+
+    if (container.scrollWidth <= container.clientWidth) {
+      return
+    }
+
+    event.preventDefault()
+    container.scrollLeft += event.deltaY + event.deltaX
+  }
+
+  useEffect(() => {
+    updateTabsOverflowState()
+
+    const container = tabsScrollerRef.current
+    if (!container) {
+      return undefined
+    }
+
+    const handleScroll = () => updateTabsOverflowState()
+    const handleResize = () => updateTabsOverflowState()
+
+    container.addEventListener('scroll', handleScroll)
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      container.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [openTabs])
+
   return (
     <div className="device-window__body">
       <div className="editor-surface">
         <div className="editor-surface__tabs">
-          <div className="editor-surface__tab-strip">
-            {openTabs.map((file) => (
-              <button
-                type="button"
-                key={file.id}
-                className={file.id === activeFile?.id ? 'editor-surface__tab is-active' : 'editor-surface__tab'}
-                onClick={() => onSelectTab(file)}
-              >
-                <span>{file.name}</span>
-                <span
-                  className="editor-surface__tab-close"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    onCloseTab(file.id)
-                  }}
+          <div className={showTabsFade ? 'editor-surface__tab-area has-fade' : 'editor-surface__tab-area'}>
+            <div
+              ref={tabsScrollerRef}
+              className="editor-surface__tab-strip"
+              onWheel={handleTabsWheel}
+            >
+              {openTabs.map((file) => (
+                <button
+                  type="button"
+                  key={file.id}
+                  className={file.id === activeFile?.id ? 'editor-surface__tab is-active' : 'editor-surface__tab'}
+                  onClick={() => onSelectTab(file)}
                 >
-                  x
-                </span>
-              </button>
-            ))}
+                  <span>{file.name}</span>
+                  <span
+                    className="editor-surface__tab-close"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onCloseTab(file.id)
+                    }}
+                  >
+                    x
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
           <button
             type="button"
@@ -203,7 +249,19 @@ function MainWindow({
   )
 }
 
-function ChatSidebar({ collapsed, onToggle }) {
+function ChatSidebar({
+  collapsed,
+  onToggle,
+  messages,
+  chatName,
+  chatNameDraft,
+  chatDraft,
+  chatConnected,
+  onChangeName,
+  onJoinChat,
+  onChangeDraft,
+  onSendMessage,
+}) {
   return (
     <aside className={`chat-sidebar${collapsed ? ' is-collapsed' : ''}`}>
       <div className="chat-sidebar__header">
@@ -222,8 +280,8 @@ function ChatSidebar({ collapsed, onToggle }) {
       {!collapsed && (
         <>
           <div className="chat-sidebar__messages">
-            {chatMessages.map((message) => (
-              <article className="chat-sidebar__bubble" key={`${message.author}-${message.role}`}>
+            {messages.map((message, index) => (
+              <article className="chat-sidebar__bubble" key={`${message.author}-${message.text}-${index}`}>
                 <div className="chat-sidebar__meta">
                   <strong>{message.author}</strong>
                   <span>{message.role}</span>
@@ -234,8 +292,45 @@ function ChatSidebar({ collapsed, onToggle }) {
           </div>
 
           <div className="chat-sidebar__composer">
-            <span>route message to active workspace</span>
-            <div className="chat-sidebar__input">Type a command, ask for help, or sync with the team...</div>
+            {!chatName ? (
+              <>
+                <span>join live workspace chat</span>
+                <input
+                  className="chat-sidebar__field"
+                  type="text"
+                  value={chatNameDraft}
+                  onChange={(event) => onChangeName(event.target.value)}
+                  placeholder="Enter your name"
+                />
+                <button type="button" className="chat-sidebar__send" onClick={onJoinChat} disabled={!chatNameDraft.trim()}>
+                  Join Chat
+                </button>
+              </>
+            ) : (
+              <>
+                <span>{chatConnected ? `chatting as ${chatName}` : `connecting as ${chatName}`}</span>
+                <input
+                  className="chat-sidebar__field"
+                  type="text"
+                  value={chatDraft}
+                  onChange={(event) => onChangeDraft(event.target.value)}
+                  placeholder="Type a message..."
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      onSendMessage()
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  className="chat-sidebar__send"
+                  onClick={onSendMessage}
+                  disabled={!chatDraft.trim() || !chatConnected}
+                >
+                  Send
+                </button>
+              </>
+            )}
           </div>
         </>
       )}
@@ -257,10 +352,20 @@ function App() {
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [chatCollapsed, setChatCollapsed] = useState(false)
+  const [chatMessages, setChatMessages] = useState(defaultChatMessages)
+  const [chatName, setChatName] = useState('')
+  const [chatNameDraft, setChatNameDraft] = useState('')
+  const [chatDraft, setChatDraft] = useState('')
+  const [chatConnected, setChatConnected] = useState(false)
   const websocketRef = useRef(null)
   const websocketRetryRef = useRef(null)
+  const chatSocketRef = useRef(null)
+  const chatRetryRef = useRef(null)
   const remoteUpdateRef = useRef(false)
   const clientIdRef = useRef(crypto.randomUUID())
+  const activeFileIdRef = useRef(null)
+  const codeRef = useRef('')
+  const pendingSocketMessageRef = useRef(null)
   const saveStateRef = useRef({
     activeFileId: null,
     code: '',
@@ -491,6 +596,34 @@ function App() {
     }
   }
 
+  function joinChat() {
+    const trimmedName = chatNameDraft.trim()
+    if (!trimmedName) {
+      return
+    }
+
+    setChatName(trimmedName)
+    setChatMessages((currentMessages) =>
+      currentMessages[0]?.text === defaultChatMessages[0].text ? [] : currentMessages,
+    )
+  }
+
+  function sendChatMessage() {
+    const trimmedMessage = chatDraft.trim()
+    if (!trimmedMessage || !chatConnected || !chatSocketRef.current) {
+      return
+    }
+
+    chatSocketRef.current.send(
+      JSON.stringify({
+        type: 'chat',
+        author: chatName,
+        text: trimmedMessage,
+      }),
+    )
+    setChatDraft('')
+  }
+
   useEffect(() => {
     if (bootComplete) {
       return undefined
@@ -525,6 +658,9 @@ function App() {
   }, [bootComplete])
 
   useEffect(() => {
+    activeFileIdRef.current = activeFile?.id ?? null
+    codeRef.current = code
+
     saveStateRef.current = {
       activeFileId: activeFile?.id ?? null,
       code,
@@ -549,20 +685,31 @@ function App() {
     }
 
     let isCurrentConnection = true
+    const fileId = activeFile.id
 
     function connectWebSocket() {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-      const socket = new WebSocket(`${protocol}//${window.location.host}/ws/${activeFile.id}`)
+      const socket = new WebSocket(`${protocol}//${window.location.host}/ws/${fileId}`)
       websocketRef.current = socket
+
+      socket.onopen = () => {
+        const pendingMessage = pendingSocketMessageRef.current
+        if (!pendingMessage || pendingMessage.fileId !== fileId) {
+          return
+        }
+
+        socket.send(JSON.stringify(pendingMessage))
+        pendingSocketMessageRef.current = null
+      }
 
       socket.onmessage = (event) => {
         const payload = JSON.parse(event.data)
-        if (payload.fileId !== activeFile.id) {
+        if (payload.fileId !== fileId) {
           return
         }
 
         if (payload.type === 'sync') {
-          syncIncomingFileContent(activeFile.id, payload.content ?? '')
+          syncIncomingFileContent(fileId, payload.content ?? '')
           return
         }
 
@@ -571,7 +718,7 @@ function App() {
             return
           }
 
-          syncIncomingFileContent(activeFile.id, payload.content ?? '')
+          syncIncomingFileContent(fileId, payload.content ?? '')
         }
       }
 
@@ -605,6 +752,80 @@ function App() {
   }, [bootComplete, activeFile?.id])
 
   useEffect(() => {
+    if (!bootComplete || !chatName) {
+      if (chatRetryRef.current) {
+        window.clearTimeout(chatRetryRef.current)
+        chatRetryRef.current = null
+      }
+
+      if (chatSocketRef.current) {
+        chatSocketRef.current.close()
+        chatSocketRef.current = null
+      }
+
+      setChatConnected(false)
+      return undefined
+    }
+
+    let isCurrentConnection = true
+
+    function connectChatSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      const socket = new WebSocket(`${protocol}//${window.location.host}/ws/chat`)
+      chatSocketRef.current = socket
+
+      socket.onopen = () => {
+        setChatConnected(true)
+      }
+
+      socket.onmessage = (event) => {
+        const payload = JSON.parse(event.data)
+        if (payload.type !== 'chat') {
+          return
+        }
+
+        setChatMessages((currentMessages) => [
+          ...currentMessages,
+          {
+            author: payload.author ?? 'Guest',
+            role: 'Live',
+            text: payload.text ?? '',
+          },
+        ])
+      }
+
+      socket.onclose = () => {
+        setChatConnected(false)
+
+        if (!isCurrentConnection) {
+          return
+        }
+
+        chatSocketRef.current = null
+        chatRetryRef.current = window.setTimeout(() => {
+          connectChatSocket()
+        }, 1000)
+      }
+    }
+
+    connectChatSocket()
+
+    return () => {
+      isCurrentConnection = false
+
+      if (chatRetryRef.current) {
+        window.clearTimeout(chatRetryRef.current)
+        chatRetryRef.current = null
+      }
+
+      if (chatSocketRef.current) {
+        chatSocketRef.current.close()
+        chatSocketRef.current = null
+      }
+    }
+  }, [bootComplete, chatName])
+
+  useEffect(() => {
     if (!activeFile?.id || !websocketRef.current) {
       return undefined
     }
@@ -619,19 +840,27 @@ function App() {
     }
 
     const sendTimer = window.setTimeout(() => {
+      const fileId = activeFileIdRef.current
+      const latestCode = codeRef.current
       const socket = websocketRef.current
-      if (!socket || socket.readyState !== WebSocket.OPEN) {
+
+      const message = {
+        type: 'edit',
+        fileId,
+        content: latestCode,
+        senderId: clientIdRef.current,
+      }
+
+      if (!fileId) {
         return
       }
 
-      socket.send(
-        JSON.stringify({
-          type: 'edit',
-          fileId: activeFile.id,
-          content: code,
-          senderId: clientIdRef.current,
-        }),
-      )
+      if (!socket || socket.readyState !== WebSocket.OPEN) {
+        pendingSocketMessageRef.current = message
+        return
+      }
+
+      socket.send(JSON.stringify(message))
     }, 250)
 
     return () => window.clearTimeout(sendTimer)
@@ -708,6 +937,15 @@ function App() {
             <ChatSidebar
               collapsed={chatCollapsed}
               onToggle={() => setChatCollapsed((current) => !current)}
+              messages={chatMessages}
+              chatName={chatName}
+              chatNameDraft={chatNameDraft}
+              chatDraft={chatDraft}
+              chatConnected={chatConnected}
+              onChangeName={setChatNameDraft}
+              onJoinChat={joinChat}
+              onChangeDraft={setChatDraft}
+              onSendMessage={sendChatMessage}
             />
           </div>
 

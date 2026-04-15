@@ -42,6 +42,13 @@ const bootLines = [
   'RENDER INTERFACE LINE BY LINE',
 ]
 
+const themeOptions = [
+  { id: 'developer', label: 'Developer' },
+  { id: 'light', label: 'Light' },
+  { id: 'casual', label: 'Casual' },
+  { id: 'neon', label: 'Neon' },
+]
+
 function BootSequence({ progress }) {
   const activeIndex = Math.min(
     bootLines.length - 1,
@@ -81,10 +88,21 @@ function MainWindow({
   loading,
   saving,
   deleting,
+  theme,
+  extensionsCollapsed,
+  notesOpen,
+  notes,
+  notesSaving,
+  notesDirty,
   hasUnsavedChanges,
   openTabs,
   activeFile,
   onChangeCode,
+  onToggleTheme,
+  onToggleExtensions,
+  onToggleNotes,
+  onChangeNotes,
+  onSaveNotes,
   onRun,
   onSave,
   onDelete,
@@ -109,6 +127,7 @@ function MainWindow({
   }
   const editorPlaceholder =
     placeholderByLanguage[activeFile?.language] ?? 'Write your code here...'
+  const currentTheme = themeOptions.find((option) => option.id === theme) ?? themeOptions[0]
 
   function handleEditorScroll(event) {
     if (lineNumbersRef.current) {
@@ -197,6 +216,13 @@ function MainWindow({
           </div>
           <button
             type="button"
+            className={`editor-surface__notes-toggle${notesOpen ? ' is-active' : ''}`}
+            onClick={onToggleNotes}
+          >
+            {notesOpen ? 'Close Notes' : 'Notes'}
+          </button>
+          <button
+            type="button"
             className="editor-surface__save"
             onClick={onSave}
             disabled={saving || !activeFile || !hasUnsavedChanges}
@@ -220,20 +246,52 @@ function MainWindow({
             {loading ? 'Running...' : 'Run'}
           </button>
         </div>
-        <div className="editor-surface__code">
-          <div ref={lineNumbersRef} className="editor-surface__numbers">
-            {Array.from({ length: lineCount }, (_, index) => (
-              <span key={index + 1}>{index + 1}</span>
-            ))}
+        <div className="editor-surface__code-shell">
+          <aside className={`notes-sidebar${notesOpen ? ' is-open' : ''}`} aria-hidden={!notesOpen}>
+            <div className="notes-sidebar__header">
+              <div>
+                <p className="chat-sidebar__label">file notes</p>
+                <h2>Notes</h2>
+              </div>
+              <button type="button" className="chat-sidebar__toggle" onClick={onToggleNotes}>
+                Close
+              </button>
+            </div>
+            <div className="notes-sidebar__body">
+              <span>{activeFile ? `Attached to ${activeFile.name}` : 'Open a file to start writing notes.'}</span>
+              <textarea
+                className="notes-sidebar__field"
+                value={notes}
+                onChange={(event) => onChangeNotes(event.target.value)}
+                placeholder={activeFile ? 'Add notes for this file...' : 'Notes will appear when a file is open.'}
+                disabled={!activeFile}
+              />
+              <button
+                type="button"
+                className="chat-sidebar__send"
+                onClick={onSaveNotes}
+                disabled={notesSaving || !activeFile || !notesDirty}
+              >
+                {notesSaving ? 'Saving...' : 'Save Notes'}
+              </button>
+            </div>
+          </aside>
+          <div className={`notes-sidebar__backdrop${notesOpen ? ' is-open' : ''}`} onClick={onToggleNotes} aria-hidden={!notesOpen}></div>
+          <div className="editor-surface__code">
+            <div ref={lineNumbersRef} className="editor-surface__numbers">
+              {Array.from({ length: lineCount }, (_, index) => (
+                <span key={index + 1}>{index + 1}</span>
+              ))}
+            </div>
+            <textarea
+              className="editor-surface__pre editor-surface__textarea"
+              value={code}
+              onChange={(event) => onChangeCode(event.target.value)}
+              onScroll={handleEditorScroll}
+              spellCheck="false"
+              placeholder={editorPlaceholder}
+            />
           </div>
-          <textarea
-            className="editor-surface__pre editor-surface__textarea"
-            value={code}
-            onChange={(event) => onChangeCode(event.target.value)}
-            onScroll={handleEditorScroll}
-            spellCheck="false"
-            placeholder={editorPlaceholder}
-          />
         </div>
       </div>
       <div className="editor-output">
@@ -245,6 +303,48 @@ function MainWindow({
           {loading ? 'Running...' : output || 'Press Ctrl+Enter to run or Ctrl+S to save.'}
         </pre>
       </div>
+      <section className={`extensions-panel${extensionsCollapsed ? ' is-collapsed' : ''}`}>
+        <div className="extensions-panel__header">
+          <div>
+            <p className="chat-sidebar__label">extensions</p>
+            {!extensionsCollapsed && <strong>Utility Strip</strong>}
+          </div>
+          <button type="button" className="chat-sidebar__toggle" onClick={onToggleExtensions}>
+            {extensionsCollapsed ? 'Open' : 'Collapse'}
+          </button>
+        </div>
+        {!extensionsCollapsed && (
+          <div className="extensions-panel__body">
+            <div className="extensions-panel__item">
+              <span>Line Counter</span>
+              <strong>{lineCount} lines</strong>
+            </div>
+              <div className="extensions-panel__item">
+                <span>Theme</span>
+                <strong>{currentTheme.label}</strong>
+              </div>
+              <div className="extensions-panel__item extensions-panel__item--themes">
+                <span>Theme Selector</span>
+                <div className="extensions-panel__themes" role="tablist" aria-label="Theme selector">
+                  {themeOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      className={
+                        option.id === theme
+                          ? 'extensions-panel__theme-button is-active'
+                          : 'extensions-panel__theme-button'
+                      }
+                      onClick={() => onToggleTheme(option.id)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+      </section>
     </div>
   )
 }
@@ -351,6 +451,11 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [theme, setTheme] = useState('developer')
+  const [extensionsCollapsed, setExtensionsCollapsed] = useState(false)
+  const [notesOpen, setNotesOpen] = useState(false)
+  const [notes, setNotes] = useState('')
+  const [notesSaving, setNotesSaving] = useState(false)
   const [chatCollapsed, setChatCollapsed] = useState(false)
   const [chatMessages, setChatMessages] = useState(defaultChatMessages)
   const [chatName, setChatName] = useState('')
@@ -374,17 +479,22 @@ function App() {
   })
 
   const hasUnsavedChanges = Boolean(activeFile) && code !== (activeFile?.content ?? '')
+  const notesDirty = Boolean(activeFile) && notes !== (activeFile?.notes ?? '')
 
-  function syncFileContent(fileId, content) {
+  function syncFileFields(fileId, updates) {
     setFiles((currentFiles) =>
-      currentFiles.map((file) => (file.id === fileId ? { ...file, content } : file)),
+      currentFiles.map((file) => (file.id === fileId ? { ...file, ...updates } : file)),
     )
     setOpenTabs((currentTabs) =>
-      currentTabs.map((file) => (file.id === fileId ? { ...file, content } : file)),
+      currentTabs.map((file) => (file.id === fileId ? { ...file, ...updates } : file)),
     )
     setActiveFile((currentFile) =>
-      currentFile?.id === fileId ? { ...currentFile, content } : currentFile,
+      currentFile?.id === fileId ? { ...currentFile, ...updates } : currentFile,
     )
+  }
+
+  function syncFileContent(fileId, content) {
+    syncFileFields(fileId, { content })
   }
 
   function openFile(file) {
@@ -396,11 +506,13 @@ function App() {
     })
     setActiveFile(file)
     setCode(file.content)
+    setNotes(file.notes ?? '')
   }
 
   function selectTab(file) {
     setActiveFile(file)
     setCode(file.content)
+    setNotes(file.notes ?? '')
   }
 
   function closeTab(fileId) {
@@ -411,6 +523,7 @@ function App() {
         const nextActive = nextTabs[nextTabs.length - 1] ?? null
         setActiveFile(nextActive)
         setCode(nextActive?.content ?? '')
+        setNotes(nextActive?.notes ?? '')
       }
 
       return nextTabs
@@ -480,6 +593,7 @@ function App() {
       } else {
         setActiveFile(null)
         setCode('')
+        setNotes('')
       }
     } catch (error) {
       setOutput(error.message || 'Unable to load files')
@@ -513,7 +627,10 @@ function App() {
       }
 
       const savedFile = await response.json()
-      syncFileContent(savedFile.id, savedFile.content)
+      syncFileFields(savedFile.id, {
+        content: savedFile.content,
+        notes: savedFile.notes ?? '',
+      })
       setOutput(`Saved ${savedFile.name}`)
     } catch (error) {
       setOutput(error.message || 'Unable to save file')
@@ -554,6 +671,7 @@ function App() {
       setOpenTabs(nextTabs)
       setActiveFile(nextActive)
       setCode(nextActive?.content ?? '')
+      setNotes(nextActive?.notes ?? '')
       setOutput(`Deleted ${fileToDelete.name}`)
     } catch (error) {
       setOutput(error.message || 'Unable to delete file')
@@ -622,6 +740,42 @@ function App() {
       }),
     )
     setChatDraft('')
+  }
+
+  async function saveActiveFileNotes() {
+    if (!activeFile || notesSaving || !notesDirty) {
+      return
+    }
+
+    setNotesSaving(true)
+
+    try {
+      const response = await fetch(`/api/file/${activeFile.id}/notes`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          notes,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Notes save failed (${response.status})`)
+      }
+
+      const savedFile = await response.json()
+      syncFileFields(savedFile.id, {
+        content: savedFile.content,
+        notes: savedFile.notes ?? '',
+      })
+      setNotes(savedFile.notes ?? '')
+      setOutput(`Saved notes for ${savedFile.name}`)
+    } catch (error) {
+      setOutput(error.message || 'Unable to save notes')
+    } finally {
+      setNotesSaving(false)
+    }
   }
 
   useEffect(() => {
@@ -907,11 +1061,15 @@ function App() {
   )
 
   if (!bootComplete) {
-    return <BootSequence progress={progress} />
+    return (
+      <div className={`theme-root theme-${theme}`}>
+        <BootSequence progress={progress} />
+      </div>
+    )
   }
 
   return (
-    <main className="workspace-shell">
+    <main className={`workspace-shell theme-${theme}`}>
       <div className="workspace-shell__hud">
         <p>FULL STACK / LIVE WORKSTATION</p>
         <span>signal route: {activeLauncher.label}</span>
@@ -980,10 +1138,21 @@ function App() {
                 loading={loading}
                 saving={saving}
                 deleting={deleting}
+                theme={theme}
+                extensionsCollapsed={extensionsCollapsed}
+                notesOpen={notesOpen}
+                notes={notes}
+                notesSaving={notesSaving}
+                notesDirty={notesDirty}
                 hasUnsavedChanges={hasUnsavedChanges}
                 openTabs={openTabs}
                 activeFile={activeFile}
                 onChangeCode={handleCodeChange}
+                onToggleTheme={setTheme}
+                onToggleExtensions={() => setExtensionsCollapsed((current) => !current)}
+                onToggleNotes={() => setNotesOpen((current) => !current)}
+                onChangeNotes={setNotes}
+                onSaveNotes={saveActiveFileNotes}
                 onRun={runCode}
                 onSave={saveActiveFile}
                 onDelete={deleteActiveFile}

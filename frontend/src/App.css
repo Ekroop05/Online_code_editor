@@ -1,4 +1,5 @@
-:root {
+.theme-root,
+.theme-developer {
   --bg: #02110b;
   --bg-deep: #010806;
   --panel: rgba(5, 23, 16, 0.84);
@@ -10,6 +11,100 @@
   --accent: #5fffa8;
   --accent-soft: rgba(95, 255, 168, 0.14);
   --shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  --shell-grad-top: #03150e;
+  --shell-grad-bottom: #010806;
+  --board-grad-top: rgba(5, 21, 15, 0.92);
+  --board-grad-bottom: rgba(3, 12, 9, 0.95);
+  --editor-surface-glow: rgba(95, 255, 168, 0.08);
+  --editor-surface-base: rgba(1, 8, 6, 0.92);
+  --output-bg: rgba(1, 8, 6, 0.88);
+  --code-number: rgba(216, 255, 232, 0.28);
+  --placeholder: rgba(216, 255, 232, 0.28);
+  --notes-backdrop: rgba(1, 8, 6, 0.28);
+  --notes-panel-bg: rgba(3, 14, 10, 0.96);
+  --field-bg: rgba(0, 0, 0, 0.24);
+  --field-placeholder: rgba(216, 255, 232, 0.5);
+}
+
+.theme-light {
+  --bg: #eef7f2;
+  --bg-deep: #dfece5;
+  --panel: rgba(255, 255, 255, 0.8);
+  --panel-strong: rgba(255, 255, 255, 0.92);
+  --line: rgba(30, 112, 74, 0.18);
+  --line-bright: rgba(30, 112, 74, 0.72);
+  --text: #17372a;
+  --text-dim: rgba(23, 55, 42, 0.66);
+  --accent: #1e704a;
+  --accent-soft: rgba(30, 112, 74, 0.1);
+  --shadow: 0 26px 70px rgba(20, 46, 35, 0.12);
+  --shell-grad-top: #f4fbf7;
+  --shell-grad-bottom: #dfece5;
+  --board-grad-top: rgba(255, 255, 255, 0.94);
+  --board-grad-bottom: rgba(232, 243, 236, 0.96);
+  --editor-surface-glow: rgba(30, 112, 74, 0.06);
+  --editor-surface-base: rgba(248, 252, 249, 0.96);
+  --output-bg: rgba(247, 252, 249, 0.95);
+  --code-number: rgba(23, 55, 42, 0.34);
+  --placeholder: rgba(23, 55, 42, 0.34);
+  --notes-backdrop: rgba(223, 236, 229, 0.48);
+  --notes-panel-bg: rgba(244, 251, 247, 0.98);
+  --field-bg: rgba(255, 255, 255, 0.84);
+  --field-placeholder: rgba(23, 55, 42, 0.44);
+}
+
+.theme-casual {
+  --bg: #fff5f7;
+  --bg-deep: #f6ebff;
+  --panel: rgba(255, 255, 255, 0.74);
+  --panel-strong: rgba(255, 252, 255, 0.92);
+  --line: rgba(206, 128, 169, 0.22);
+  --line-bright: rgba(206, 128, 169, 0.72);
+  --text: #5f3b52;
+  --text-dim: rgba(95, 59, 82, 0.66);
+  --accent: #d07fa7;
+  --accent-soft: rgba(208, 127, 167, 0.14);
+  --shadow: 0 28px 72px rgba(143, 88, 126, 0.16);
+  --shell-grad-top: #fffaf4;
+  --shell-grad-bottom: #f6ebff;
+  --board-grad-top: rgba(255, 251, 252, 0.94);
+  --board-grad-bottom: rgba(248, 238, 250, 0.96);
+  --editor-surface-glow: rgba(208, 127, 167, 0.08);
+  --editor-surface-base: rgba(255, 250, 252, 0.95);
+  --output-bg: rgba(255, 248, 251, 0.94);
+  --code-number: rgba(95, 59, 82, 0.34);
+  --placeholder: rgba(95, 59, 82, 0.34);
+  --notes-backdrop: rgba(246, 235, 255, 0.54);
+  --notes-panel-bg: rgba(255, 249, 252, 0.98);
+  --field-bg: rgba(255, 255, 255, 0.86);
+  --field-placeholder: rgba(95, 59, 82, 0.46);
+}
+
+.theme-neon {
+  --bg: #050816;
+  --bg-deep: #02050d;
+  --panel: rgba(6, 17, 34, 0.82);
+  --panel-strong: rgba(7, 20, 38, 0.94);
+  --line: rgba(79, 240, 222, 0.24);
+  --line-bright: rgba(79, 240, 222, 0.94);
+  --text: #dcfbff;
+  --text-dim: rgba(220, 251, 255, 0.7);
+  --accent: #52f6d9;
+  --accent-soft: rgba(82, 246, 217, 0.14);
+  --shadow: 0 32px 90px rgba(0, 0, 0, 0.55);
+  --shell-grad-top: #091127;
+  --shell-grad-bottom: #02050d;
+  --board-grad-top: rgba(8, 18, 34, 0.94);
+  --board-grad-bottom: rgba(3, 8, 20, 0.98);
+  --editor-surface-glow: rgba(82, 246, 217, 0.1);
+  --editor-surface-base: rgba(3, 8, 20, 0.94);
+  --output-bg: rgba(3, 8, 20, 0.9);
+  --code-number: rgba(220, 251, 255, 0.34);
+  --placeholder: rgba(220, 251, 255, 0.34);
+  --notes-backdrop: rgba(2, 5, 13, 0.4);
+  --notes-panel-bg: rgba(8, 18, 34, 0.98);
+  --field-bg: rgba(1, 10, 22, 0.5);
+  --field-placeholder: rgba(220, 251, 255, 0.48);
 }
 
 .workspace-shell,
@@ -19,7 +114,8 @@
   background:
     radial-gradient(circle at top left, rgba(95, 255, 168, 0.16), transparent 26%),
     radial-gradient(circle at 85% 12%, rgba(95, 255, 168, 0.08), transparent 18%),
-    linear-gradient(180deg, #03150e 0%, #010806 100%);
+    linear-gradient(180deg, var(--shell-grad-top) 0%, var(--shell-grad-bottom) 100%);
+  transition: background 300ms ease, color 300ms ease;
 }
 
 .boot-screen {
@@ -161,9 +257,10 @@
   border-radius: 32px;
   border: 1px solid var(--line);
   background:
-    linear-gradient(180deg, rgba(5, 21, 15, 0.92), rgba(3, 12, 9, 0.95)),
+    linear-gradient(180deg, var(--board-grad-top), var(--board-grad-bottom)),
     linear-gradient(90deg, rgba(95, 255, 168, 0.04), transparent);
   box-shadow: var(--shadow);
+  transition: background 300ms ease, border-color 300ms ease, box-shadow 300ms ease;
 }
 
 .workspace-board__header {
@@ -214,6 +311,7 @@
   border: 1px solid var(--line);
   background: var(--panel);
   backdrop-filter: blur(16px);
+  transition: background 300ms ease, border-color 300ms ease, box-shadow 300ms ease;
 }
 
 .launcher-panel,
@@ -394,6 +492,7 @@
   min-height: 720px;
   overflow: hidden;
   background: var(--panel-strong);
+  transition: background 300ms ease, border-color 300ms ease, box-shadow 300ms ease;
 }
 
 .device-window__bar {
@@ -416,6 +515,7 @@
   height: 10px;
   border-radius: 50%;
   background: rgba(95, 255, 168, 0.8);
+  transition: background 300ms ease, box-shadow 300ms ease;
 }
 
 .device-window__bar strong {
@@ -447,8 +547,9 @@
   border-radius: 22px;
   border: 1px solid rgba(95, 255, 168, 0.16);
   background:
-    linear-gradient(180deg, rgba(95, 255, 168, 0.08), transparent 18%),
-    rgba(1, 8, 6, 0.92);
+    linear-gradient(180deg, var(--editor-surface-glow), transparent 18%),
+    var(--editor-surface-base);
+  transition: background 300ms ease, border-color 300ms ease, box-shadow 300ms ease;
 }
 
 .editor-surface__tabs {
@@ -507,6 +608,7 @@
   cursor: pointer;
   font: inherit;
   white-space: nowrap;
+  transition: color 300ms ease, background 300ms ease, border-color 300ms ease;
 }
 
 .editor-surface__tab.is-active {
@@ -524,6 +626,7 @@
   color: var(--text-dim);
   background: rgba(0, 0, 0, 0.18);
   line-height: 1;
+  transition: color 300ms ease, background 300ms ease;
 }
 
 .editor-surface__run {
@@ -549,6 +652,22 @@
   transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
+.editor-surface__notes-toggle {
+  padding: 9px 14px;
+  border: 1px solid rgba(95, 255, 168, 0.18);
+  border-radius: 999px;
+  color: var(--accent);
+  background: rgba(95, 255, 168, 0.08);
+  cursor: pointer;
+  font: inherit;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.editor-surface__notes-toggle.is-active {
+  border-color: var(--line-bright);
+  background: rgba(95, 255, 168, 0.14);
+}
+
 .editor-surface__delete {
   padding: 9px 14px;
   border: 1px solid rgba(255, 124, 124, 0.22);
@@ -561,6 +680,7 @@
 }
 
 .editor-surface__save:hover:not(:disabled),
+.editor-surface__notes-toggle:hover:not(:disabled),
 .editor-surface__delete:hover:not(:disabled),
 .editor-surface__run:hover:not(:disabled) {
   transform: translateY(-1px);
@@ -569,18 +689,104 @@
 }
 
 .editor-surface__save:disabled,
+.editor-surface__notes-toggle:disabled,
 .editor-surface__delete:disabled,
 .editor-surface__run:disabled {
   cursor: wait;
   opacity: 0.85;
 }
 
+.editor-surface__code-shell {
+  position: relative;
+}
+
 .editor-surface__code {
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr);
-  height: 560px;
+  height: 472px;
   padding: 18px 0;
   overflow: hidden;
+}
+
+.notes-sidebar__backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--notes-backdrop);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+
+.notes-sidebar__backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.notes-sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 18px;
+  width: min(360px, calc(100% - 24px));
+  padding: 18px;
+  border-right: 1px solid var(--line);
+  background: var(--notes-panel-bg);
+  backdrop-filter: blur(16px);
+  transform: translateX(-100%);
+  transition: transform 220ms ease;
+}
+
+.notes-sidebar.is-open {
+  transform: translateX(0);
+}
+
+.notes-sidebar__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+
+.notes-sidebar__header h2 {
+  margin: 8px 0 0;
+  font-size: 1.7rem;
+}
+
+.notes-sidebar__body {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  min-height: 0;
+}
+
+.notes-sidebar__body span {
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+}
+
+.notes-sidebar__field {
+  width: 100%;
+  min-height: 100%;
+  padding: 16px;
+  border: 1px solid rgba(95, 255, 168, 0.16);
+  border-radius: 18px;
+  color: var(--text);
+  background: var(--field-bg);
+  font: inherit;
+  line-height: 1.6;
+  resize: none;
+  outline: none;
+}
+
+.notes-sidebar__field::placeholder {
+  color: var(--field-placeholder);
 }
 
 .editor-surface__numbers,
@@ -595,7 +801,7 @@
   align-content: start;
   gap: 0;
   padding-left: 18px;
-  color: rgba(216, 255, 232, 0.28);
+  color: var(--code-number);
   overflow: hidden;
 }
 
@@ -616,14 +822,140 @@
 }
 
 .editor-surface__textarea::placeholder {
-  color: rgba(216, 255, 232, 0.28);
+  color: var(--placeholder);
 }
 
 .editor-output {
   border: 1px solid rgba(95, 255, 168, 0.16);
   border-radius: 18px;
-  background: rgba(1, 8, 6, 0.88);
+  background: var(--output-bg);
   overflow: hidden;
+  transition: background 300ms ease, border-color 300ms ease, box-shadow 300ms ease;
+}
+
+.extensions-panel {
+  display: grid;
+  gap: 14px;
+  padding: 14px 16px 16px;
+  border: 1px solid rgba(95, 255, 168, 0.14);
+  border-radius: 18px;
+  background: rgba(95, 255, 168, 0.04);
+  overflow: hidden;
+  transition: background 300ms ease, border-color 300ms ease, box-shadow 300ms ease;
+}
+
+.extensions-panel.is-collapsed {
+  gap: 0;
+  padding-bottom: 14px;
+}
+
+.extensions-panel__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.extensions-panel__header strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.extensions-panel__body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.extensions-panel__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(95, 255, 168, 0.14);
+  border-radius: 16px;
+  background: rgba(95, 255, 168, 0.05);
+}
+
+.extensions-panel__item span {
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+}
+
+.extensions-panel__item strong {
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.extensions-panel__theme-button {
+  padding: 8px 12px;
+  border: 1px solid rgba(95, 255, 168, 0.18);
+  border-radius: 999px;
+  color: var(--accent);
+  background: rgba(95, 255, 168, 0.08);
+  cursor: pointer;
+  font: inherit;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.extensions-panel__theme-button:hover {
+  transform: translateY(-1px);
+  border-color: var(--line-bright);
+  background: rgba(95, 255, 168, 0.14);
+}
+
+.extensions-panel__theme-button.is-active {
+  color: var(--text);
+  border-color: var(--line-bright);
+  background: rgba(95, 255, 168, 0.18);
+  box-shadow: 0 0 18px rgba(95, 255, 168, 0.12);
+}
+
+.extensions-panel__item--themes {
+  align-items: start;
+  flex-direction: column;
+}
+
+.extensions-panel__themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+}
+
+.theme-neon .workspace-shell,
+.theme-neon .boot-screen {
+  background:
+    radial-gradient(circle at top left, rgba(82, 246, 217, 0.18), transparent 24%),
+    radial-gradient(circle at 85% 12%, rgba(82, 191, 246, 0.12), transparent 18%),
+    linear-gradient(180deg, var(--shell-grad-top) 0%, var(--shell-grad-bottom) 100%);
+}
+
+.theme-neon .workspace-board,
+.theme-neon .device-window,
+.theme-neon .chat-sidebar,
+.theme-neon .editor-surface,
+.theme-neon .editor-output,
+.theme-neon .extensions-panel {
+  box-shadow:
+    inset 0 0 0 1px rgba(82, 246, 217, 0.08),
+    0 0 28px rgba(82, 246, 217, 0.08),
+    var(--shadow);
+}
+
+.theme-neon .chat-sidebar__status,
+.theme-neon .chat-sidebar__toggle,
+.theme-neon .chat-sidebar__send,
+.theme-neon .editor-surface__notes-toggle,
+.theme-neon .editor-surface__save,
+.theme-neon .editor-surface__run,
+.theme-neon .extensions-panel__theme-button {
+  box-shadow: 0 0 18px rgba(82, 246, 217, 0.16);
 }
 
 .editor-output__bar {
@@ -913,10 +1245,14 @@
 
   .editor-surface__code {
     grid-template-columns: 40px minmax(0, 1fr);
-    height: 420px;
+    height: 360px;
   }
 
   .module-rack {
+    grid-template-columns: 1fr;
+  }
+
+  .extensions-panel__body {
     grid-template-columns: 1fr;
   }
 }

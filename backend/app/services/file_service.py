@@ -35,6 +35,7 @@ def _serialize_file(document: dict[str, Any]) -> dict[str, Any]:
         "name": document["name"],
         "language": document.get("language", _infer_language(document["name"])),
         "content": document.get("content", ""),
+        "notes": document.get("notes", ""),
     }
 
 
@@ -44,7 +45,12 @@ def get_all_files() -> List[dict[str, Any]]:
     return [_serialize_file(doc) for doc in documents if doc.get("name") not in {"helper.py", "runner.py"}]
 
 
-def create_file(name: str, language: str | None = None, content: str = "") -> dict[str, Any]:
+def create_file(
+    name: str,
+    language: str | None = None,
+    content: str = "",
+    notes: str = "",
+) -> dict[str, Any]:
     collection = get_files_collection()
 
     file_id = str(uuid.uuid4())
@@ -54,6 +60,7 @@ def create_file(name: str, language: str | None = None, content: str = "") -> di
         "name": name,
         "language": language or _infer_language(name),
         "content": content,
+        "notes": notes,
     }
 
     collection.insert_one(new_file)
@@ -76,6 +83,21 @@ def update_file(file_id: str, content: str) -> dict[str, Any] | None:
     result = collection.update_one(
         {"id": file_id},
         {"$set": {"content": content}}
+    )
+
+    if result.matched_count == 0:
+        return None
+
+    updated_doc = collection.find_one({"id": file_id}, {"_id": 0})
+    return _serialize_file(updated_doc)
+
+
+def update_file_notes(file_id: str, notes: str) -> dict[str, Any] | None:
+    collection = get_files_collection()
+
+    result = collection.update_one(
+        {"id": file_id},
+        {"$set": {"notes": notes}},
     )
 
     if result.matched_count == 0:

@@ -426,7 +426,7 @@ function ChatSidebar({
                   type="button"
                   className="chat-sidebar__send"
                   onClick={onSendMessage}
-                  disabled={!chatDraft.trim() || !chatConnected}
+                  disabled={!chatDraft.trim()}
                 >
                   Send
                 </button>
@@ -467,6 +467,7 @@ function App() {
   const websocketRetryRef = useRef(null)
   const chatSocketRef = useRef(null)
   const chatRetryRef = useRef(null)
+  const pendingChatMessageRef = useRef(null)
   const remoteUpdateRef = useRef(false)
   const clientIdRef = useRef(crypto.randomUUID())
   const activeFileIdRef = useRef(null)
@@ -729,17 +730,25 @@ function App() {
 
   function sendChatMessage() {
     const trimmedMessage = chatDraft.trim()
-    if (!trimmedMessage || !chatConnected || !chatSocketRef.current) {
+    if (!trimmedMessage || !chatName) {
       return
     }
 
-    chatSocketRef.current.send(
-      JSON.stringify({
-        type: 'chat',
-        author: chatName,
-        text: trimmedMessage,
-      }),
-    )
+    const payload = JSON.stringify({
+      type: 'chat',
+      author: chatName,
+      text: trimmedMessage,
+    })
+
+    const socket = chatSocketRef.current
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      pendingChatMessageRef.current = payload
+      setOutput('Chat is reconnecting. Your message will send once the connection is ready.')
+      setChatDraft('')
+      return
+    }
+
+    socket.send(payload)
     setChatDraft('')
   }
 
@@ -918,6 +927,7 @@ function App() {
       }
 
       setChatConnected(false)
+      pendingChatMessageRef.current = null
       return undefined
     }
 
@@ -929,6 +939,12 @@ function App() {
 
       socket.onopen = () => {
         setChatConnected(true)
+
+        if (pendingChatMessageRef.current) {
+          socket.send(pendingChatMessageRef.current)
+          pendingChatMessageRef.current = null
+          setOutput('Chat connected.')
+        }
       }
 
       socket.onmessage = (event) => {
@@ -975,6 +991,8 @@ function App() {
         chatSocketRef.current.close()
         chatSocketRef.current = null
       }
+
+      pendingChatMessageRef.current = null
     }
   }, [bootComplete, chatName])
 

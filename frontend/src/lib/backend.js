@@ -11,6 +11,18 @@ function normalizeBaseUrl(value) {
 
 export const apiBaseUrl = normalizeBaseUrl(rawApiBaseUrl)
 
+function normalizeApiPath(path) {
+  if (path.startsWith('/api/')) {
+    return path.replace(/^\/api/, '')
+  }
+
+  if (path === '/api') {
+    return ''
+  }
+
+  return path
+}
+
 export function buildApiUrl(path) {
   if (/^https?:\/\//i.test(path)) {
     return path
@@ -20,7 +32,7 @@ export function buildApiUrl(path) {
     return path
   }
 
-  return `${apiBaseUrl}${path}`
+  return `${apiBaseUrl}${normalizeApiPath(path)}`
 }
 
 export function buildWebSocketUrl(path) {

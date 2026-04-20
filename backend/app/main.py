@@ -2,6 +2,7 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.core.config import settings
 from app.routes import chat, collaboration, execute, file
 from app.db.database import verify_mongodb_connection
 from app.services.file_service import remove_legacy_seed_files
@@ -14,8 +15,8 @@ app = FastAPI()
 # Allow frontend requests
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=settings.cors_origins,
+    allow_credentials=settings.cors_origins != ["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -33,6 +34,13 @@ def startup_event():
     removed_count = remove_legacy_seed_files()
     logging.getLogger(__name__).info("Removed %s legacy seed files", removed_count)
 
+
 @app.get("/")
 def root():
-    return {"message": "Backend is running "}
+    return {"message": "Backend is running"}
+
+
+@app.get("/health")
+def health():
+    verify_mongodb_connection()
+    return {"status": "ok"}

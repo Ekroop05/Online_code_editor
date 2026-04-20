@@ -3,11 +3,14 @@ import re
 import shutil
 import subprocess
 import uuid
+from pathlib import Path
 
-TEMP_DIR = "temp"
+from app.core.config import settings
+
+TEMP_DIR = settings.temp_dir
 
 # Ensure temp folder exists
-os.makedirs(TEMP_DIR, exist_ok=True)
+TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
 LANGUAGE_ALIASES = {
     "python": "python",
@@ -52,46 +55,58 @@ def _cleanup_paths(*paths: str):
 
 def execute_python(code: str):
     file_id = str(uuid.uuid4())
-    file_path = os.path.join(TEMP_DIR, f"{file_id}.py")
+    file_path = TEMP_DIR / f"{file_id}.py"
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(code)
 
     try:
-        return _run_subprocess(["py", file_path])
+        python_command = shutil.which("python") or shutil.which("py")
+        if not python_command:
+            return {"output": "", "error": "Python runtime is not available on this machine."}
+
+        return _run_subprocess([python_command, str(file_path)])
     finally:
-        _cleanup_paths(file_path)
+        _cleanup_paths(str(file_path))
 
 
 def execute_javascript(code: str):
+    node_command = shutil.which("node")
+    if not node_command:
+        return {"output": "", "error": "Node.js runtime is not available on this machine."}
+
     file_id = str(uuid.uuid4())
-    file_path = os.path.join(TEMP_DIR, f"{file_id}.js")
+    file_path = TEMP_DIR / f"{file_id}.js"
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(code)
 
     try:
-        return _run_subprocess(["node", file_path])
+        return _run_subprocess([node_command, str(file_path)])
     finally:
-        _cleanup_paths(file_path)
+        _cleanup_paths(str(file_path))
 
 
 def execute_cpp(code: str):
+    gpp_command = shutil.which("g++")
+    if not gpp_command:
+        return {"output": "", "error": "g++ compiler is not available on this machine."}
+
     file_id = str(uuid.uuid4())
-    source_path = os.path.join(TEMP_DIR, f"{file_id}.cpp")
-    binary_path = os.path.join(TEMP_DIR, f"{file_id}.exe")
+    source_path = TEMP_DIR / f"{file_id}.cpp"
+    binary_path = TEMP_DIR / f"{file_id}.exe"
 
     with open(source_path, "w", encoding="utf-8") as f:
         f.write(code)
 
     try:
-        compile_result = _run_subprocess(["g++", source_path, "-o", binary_path], timeout=10)
+        compile_result = _run_subprocess([gpp_command, str(source_path), "-o", str(binary_path)], timeout=10)
         if compile_result["error"]:
             return compile_result
 
-        return _run_subprocess([binary_path], timeout=5)
+        return _run_subprocess([str(binary_path)], timeout=5)
     finally:
-        _cleanup_paths(source_path, binary_path)
+        _cleanup_paths(str(source_path), str(binary_path))
 
 
 def _detect_java_class_name(code: str) -> str:
@@ -107,21 +122,26 @@ def _detect_java_class_name(code: str) -> str:
 
 
 def execute_java(code: str):
+    javac_command = shutil.which("javac")
+    java_command = shutil.which("java")
+    if not javac_command or not java_command:
+        return {"output": "", "error": "Java runtime/compiler is not available on this machine."}
+
     class_name = _detect_java_class_name(code)
-    source_path = os.path.join(TEMP_DIR, f"{class_name}.java")
-    class_path = os.path.join(TEMP_DIR, f"{class_name}.class")
+    source_path = TEMP_DIR / f"{class_name}.java"
+    class_path = TEMP_DIR / f"{class_name}.class"
 
     with open(source_path, "w", encoding="utf-8") as f:
         f.write(code)
 
     try:
-        compile_result = _run_subprocess(["javac", os.path.basename(source_path)], timeout=10, cwd=TEMP_DIR)
+        compile_result = _run_subprocess([javac_command, source_path.name], timeout=10, cwd=str(TEMP_DIR))
         if compile_result["error"]:
             return compile_result
 
-        return _run_subprocess(["java", "-cp", TEMP_DIR, class_name], timeout=5)
+        return _run_subprocess([java_command, "-cp", str(TEMP_DIR), class_name], timeout=5)
     finally:
-        _cleanup_paths(source_path, class_path)
+        _cleanup_paths(str(source_path), str(class_path))
 
 
 def execute_bash(code: str):
@@ -133,15 +153,15 @@ def execute_bash(code: str):
         }
 
     file_id = str(uuid.uuid4())
-    file_path = os.path.join(TEMP_DIR, f"{file_id}.sh")
+    file_path = TEMP_DIR / f"{file_id}.sh"
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(code)
 
     try:
-        return _run_subprocess([bash_path, file_path])
+        return _run_subprocess([bash_path, str(file_path)])
     finally:
-        _cleanup_paths(file_path)
+        _cleanup_paths(str(file_path))
 
 
 def execute_code(language: str, code: str):

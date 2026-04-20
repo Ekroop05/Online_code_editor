@@ -291,6 +291,7 @@ function MainWindow({
               onChange={(event) => onChangeCode(event.target.value)}
               onScroll={handleEditorScroll}
               spellCheck="false"
+              wrap="off"
               placeholder={editorPlaceholder}
             />
           </div>

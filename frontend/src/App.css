@@ -794,6 +794,7 @@
   font-family: 'Consolas', 'Courier New', monospace;
   font-size: 0.98rem;
   line-height: 1.85;
+  tab-size: 4;
 }
 
 .editor-surface__numbers {
@@ -803,17 +804,19 @@
   padding-left: 18px;
   color: var(--code-number);
   overflow: hidden;
+  user-select: none;
 }
 
 .editor-surface__pre {
   margin: 0;
   padding: 0 22px 22px 8px;
   color: var(--text);
-  white-space: pre-wrap;
+  white-space: pre;
 }
 
 .editor-surface__textarea {
   height: 100%;
+  min-width: 0;
   border: 0;
   outline: 0;
   resize: none;

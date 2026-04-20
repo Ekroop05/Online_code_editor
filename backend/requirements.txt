@@ -3,3 +3,4 @@ uvicorn
 pydantic
 pymongo[srv]
 python-dotenv
+websockets==15.0.1

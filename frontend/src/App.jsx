@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { FileExplorer } from './components/FileExplorer/FileExplorer.jsx'
+import { buildApiUrl, buildWebSocketUrl } from './lib/backend.js'
 import './App.css'
 
 const launchers = [
@@ -551,7 +552,7 @@ function App() {
     }
 
     try {
-      const response = await fetch('/api/files', {
+      const response = await fetch(buildApiUrl('/api/files'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -577,7 +578,7 @@ function App() {
 
   async function loadFiles() {
     try {
-      const response = await fetch('/api/files')
+      const response = await fetch(buildApiUrl('/api/files'))
       if (!response.ok) {
         throw new Error(`Failed to load files (${response.status})`)
       }
@@ -612,7 +613,7 @@ function App() {
     setSaving(true)
 
     try {
-      const response = await fetch(`/api/files/${fileId}`, {
+      const response = await fetch(buildApiUrl(`/api/files/${fileId}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -655,7 +656,7 @@ function App() {
     setDeleting(true)
 
     try {
-      const response = await fetch(`/api/files/${fileToDelete.id}`, {
+      const response = await fetch(buildApiUrl(`/api/files/${fileToDelete.id}`), {
         method: 'DELETE',
       })
 
@@ -690,7 +691,7 @@ function App() {
     setOutput('')
 
     try {
-      const response = await fetch('/api/execute', {
+      const response = await fetch(buildApiUrl('/api/execute'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -750,7 +751,7 @@ function App() {
     setNotesSaving(true)
 
     try {
-      const response = await fetch(`/api/file/${activeFile.id}/notes`, {
+      const response = await fetch(buildApiUrl(`/api/file/${activeFile.id}/notes`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -842,8 +843,7 @@ function App() {
     const fileId = activeFile.id
 
     function connectWebSocket() {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-      const socket = new WebSocket(`${protocol}//${window.location.host}/ws/${fileId}`)
+      const socket = new WebSocket(buildWebSocketUrl(`/ws/${fileId}`))
       websocketRef.current = socket
 
       socket.onopen = () => {
@@ -924,8 +924,7 @@ function App() {
     let isCurrentConnection = true
 
     function connectChatSocket() {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-      const socket = new WebSocket(`${protocol}//${window.location.host}/ws/chat`)
+      const socket = new WebSocket(buildWebSocketUrl('/ws/chat'))
       chatSocketRef.current = socket
 
       socket.onopen = () => {

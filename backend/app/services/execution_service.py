@@ -8,6 +8,8 @@ from pathlib import Path
 from app.core.config import settings
 
 TEMP_DIR = settings.temp_dir
+BACKEND_DIR = Path(__file__).resolve().parents[2]
+BUNDLED_JAVA_HOME = BACKEND_DIR / ".render" / "java"
 
 # Ensure temp folder exists
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
@@ -51,6 +53,31 @@ def _cleanup_paths(*paths: str):
     for path in paths:
         if path and os.path.exists(path) and os.path.isfile(path):
             os.remove(path)
+
+
+def _cleanup_directory(path: Path):
+    if path.exists() and path.is_dir():
+        shutil.rmtree(path, ignore_errors=True)
+
+
+def _resolve_executable(command_name: str, java_home: Path | None = None) -> str | None:
+    search_roots = []
+
+    if java_home:
+        search_roots.append(java_home)
+
+    env_java_home = os.getenv("JAVA_HOME")
+    if env_java_home:
+        search_roots.append(Path(env_java_home))
+
+    search_roots.append(BUNDLED_JAVA_HOME)
+
+    for root in search_roots:
+        candidate = root / "bin" / command_name
+        if candidate.exists():
+            return str(candidate)
+
+    return shutil.which(command_name)
 
 
 def execute_python(code: str):
@@ -122,26 +149,29 @@ def _detect_java_class_name(code: str) -> str:
 
 
 def execute_java(code: str):
-    javac_command = shutil.which("javac")
-    java_command = shutil.which("java")
+    java_home = BUNDLED_JAVA_HOME if BUNDLED_JAVA_HOME.exists() else None
+    javac_command = _resolve_executable("javac", java_home=java_home)
+    java_command = _resolve_executable("java", java_home=java_home)
     if not javac_command or not java_command:
         return {"output": "", "error": "Java runtime/compiler is not available on this machine."}
 
+    workspace_dir = TEMP_DIR / f"java-{uuid.uuid4()}"
+    workspace_dir.mkdir(parents=True, exist_ok=True)
+
     class_name = _detect_java_class_name(code)
-    source_path = TEMP_DIR / f"{class_name}.java"
-    class_path = TEMP_DIR / f"{class_name}.class"
+    source_path = workspace_dir / f"{class_name}.java"
 
     with open(source_path, "w", encoding="utf-8") as f:
         f.write(code)
 
     try:
-        compile_result = _run_subprocess([javac_command, source_path.name], timeout=10, cwd=str(TEMP_DIR))
+        compile_result = _run_subprocess([javac_command, source_path.name], timeout=10, cwd=str(workspace_dir))
         if compile_result["error"]:
             return compile_result
 
-        return _run_subprocess([java_command, "-cp", str(TEMP_DIR), class_name], timeout=5)
+        return _run_subprocess([java_command, "-cp", str(workspace_dir), class_name], timeout=5)
     finally:
-        _cleanup_paths(str(source_path), str(class_path))
+        _cleanup_directory(workspace_dir)
 
 
 def execute_bash(code: str):

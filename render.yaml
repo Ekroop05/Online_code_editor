@@ -3,12 +3,14 @@ services:
     name: online-code-edit-backend
     env: python
     rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: bash ./scripts/install_java.sh && pip install -r requirements.txt
+    startCommand: export JAVA_HOME="$PWD/.render/java" && export PATH="$JAVA_HOME/bin:$PATH" && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: JAVA_VERSION
+        value: "17"
       - key: MONGODB_URI
         sync: false
       - key: MONGODB_COLLECTION_NAME

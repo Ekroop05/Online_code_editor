@@ -17,7 +17,9 @@ Create `backend/.env` from `backend/.env.example` and set:
 This repo includes a root `render.yaml` for deploying the backend service on Render.
 
 - Root directory: `backend`
-- Build command: `pip install -r requirements.txt`
-- Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- Build command: `bash ./scripts/install_java.sh && pip install -r requirements.txt`
+- Start command: `export JAVA_HOME="$PWD/.render/java" && export PATH="$JAVA_HOME/bin:$PATH" && uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 
 Set `MONGODB_URI` in Render's environment variables before deploying.
+
+The Render setup downloads a Temurin JDK during the build so Java execution can work without Docker.

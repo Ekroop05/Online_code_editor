@@ -19,6 +19,7 @@ async def chat_socket(websocket: WebSocket):
             await chat_connection_manager.broadcast(
                 {
                     "type": "chat",
+                    "messageId": payload.get("messageId"),
                     "author": payload.get("author", "Guest"),
                     "text": payload.get("text", ""),
                 }

@@ -1101,10 +1101,17 @@
   display: grid;
   gap: 12px;
   align-content: start;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .chat-sidebar__bubble {
   padding: 16px;
+}
+
+.chat-sidebar__bubble.is-pending {
+  opacity: 0.78;
 }
 
 .chat-sidebar__composer {

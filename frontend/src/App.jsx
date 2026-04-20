@@ -29,6 +29,7 @@ const launchers = [
 
 const defaultChatMessages = [
   {
+    id: 'system-welcome',
     author: 'System',
     role: 'Runtime',
     text: 'Enter your name to join the live channel.',
@@ -382,7 +383,10 @@ function ChatSidebar({
         <>
           <div className="chat-sidebar__messages">
             {messages.map((message, index) => (
-              <article className="chat-sidebar__bubble" key={`${message.author}-${message.text}-${index}`}>
+              <article
+                className={message.pending ? 'chat-sidebar__bubble is-pending' : 'chat-sidebar__bubble'}
+                key={message.id ?? `${message.author}-${message.text}-${index}`}
+              >
                 <div className="chat-sidebar__meta">
                   <strong>{message.author}</strong>
                   <span>{message.role}</span>
@@ -468,6 +472,7 @@ function App() {
   const chatSocketRef = useRef(null)
   const chatRetryRef = useRef(null)
   const pendingChatMessageRef = useRef(null)
+  const seenChatMessageIdsRef = useRef(new Set(defaultChatMessages.map((message) => message.id)))
   const remoteUpdateRef = useRef(false)
   const clientIdRef = useRef(crypto.randomUUID())
   const activeFileIdRef = useRef(null)
@@ -723,6 +728,8 @@ function App() {
     }
 
     setChatName(trimmedName)
+    pendingChatMessageRef.current = null
+    seenChatMessageIdsRef.current = new Set()
     setChatMessages((currentMessages) =>
       currentMessages[0]?.text === defaultChatMessages[0].text ? [] : currentMessages,
     )
@@ -734,11 +741,25 @@ function App() {
       return
     }
 
+    const messageId = crypto.randomUUID()
     const payload = JSON.stringify({
       type: 'chat',
+      messageId,
       author: chatName,
       text: trimmedMessage,
     })
+
+    setChatMessages((currentMessages) => [
+      ...currentMessages,
+      {
+        id: messageId,
+        author: chatName,
+        role: 'Live',
+        text: trimmedMessage,
+        pending: true,
+      },
+    ])
+    seenChatMessageIdsRef.current.add(messageId)
 
     const socket = chatSocketRef.current
     if (!socket || socket.readyState !== WebSocket.OPEN) {
@@ -953,14 +974,30 @@ function App() {
           return
         }
 
-        setChatMessages((currentMessages) => [
-          ...currentMessages,
-          {
+        const messageId = payload.messageId ?? crypto.randomUUID()
+
+        setChatMessages((currentMessages) => {
+          const nextMessage = {
+            id: messageId,
             author: payload.author ?? 'Guest',
             role: 'Live',
             text: payload.text ?? '',
-          },
-        ])
+          }
+          const existingIndex = currentMessages.findIndex((message) => message.id === messageId)
+
+          if (existingIndex >= 0) {
+            const nextMessages = [...currentMessages]
+            nextMessages[existingIndex] = nextMessage
+            return nextMessages
+          }
+
+          if (seenChatMessageIdsRef.current.has(messageId)) {
+            return currentMessages
+          }
+
+          seenChatMessageIdsRef.current.add(messageId)
+          return [...currentMessages, nextMessage]
+        })
       }
 
       socket.onclose = () => {
